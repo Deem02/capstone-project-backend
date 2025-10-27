@@ -23,8 +23,7 @@ class DepartmentList(APIView):
         serializer = DepartmentSerializer(queryset, many=True)
         return Response(serializer.data)
     
-    def post(self, request):
-        
+    def post(self, request):  
         try:
             serializer = DepartmentSerializer(data=request.data)
             if serializer.is_valid():
@@ -34,6 +33,43 @@ class DepartmentList(APIView):
         
         except Exception as err:
             return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# retreve, update, delete a single department         
+class DepartmentDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, department_id ):
+        try:
+            department = get_object_or_404(Department, id=department_id)
+            serializer = DepartmentSerializer(department)
+            data = serializer.data
+            return Response(data)
+        except Exception as err:
+            return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def put(self, request, department_id):
+        
+        try:
+            department = get_object_or_404(Department, id=department_id)
+            serializer = DepartmentSerializer(department, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)           
+              
+        except Exception as err:
+                return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    def delete(self, request, department_id):
+        department = get_object_or_404(Department, id=department_id)
+        department.delete()
+        return Response({'message': f'Depatment {department_id} has been dealeted '}, status=status.HTTP_200_OK)
+    # I dont use try - except here to get  404 Not Found           
+  
+        
+            
+            
+    
         
         
         
