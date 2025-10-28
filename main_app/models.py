@@ -24,7 +24,7 @@ class Employee(models.Model):
         related_name='employee_profile'
     )
     
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='USER' )
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, blank=True, null=True, related_name='employees')
     
     def __str__(self):
