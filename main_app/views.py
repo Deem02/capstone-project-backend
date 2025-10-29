@@ -1,13 +1,14 @@
 from django.shortcuts import render
-from .models import Department
-from .serializers import DepartmentSerializer
+from .models import Department, Employee
+from .serializers import DepartmentSerializer, EmployeeSerializer
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 #Auth
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny, IsAdminUser
+
 from django.contrib.auth import get_user_model
 
 # Create your views here.
@@ -64,7 +65,27 @@ class DepartmentDetail(APIView):
         department = get_object_or_404(Department, id=department_id)
         department.delete()
         return Response({'message': f'Depatment {department_id} has been dealeted '}, status=status.HTTP_200_OK)
-    # I dont use try - except here to get  404 Not Found           
+    # I dont use try - except here to get  404 Not Found 
+    
+class EmployeeRegister(APIView):
+    permission_classes = [AllowAny] 
+    def post(self, request):     
+        try:
+            serializer = EmployeeSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)           
+        
+        except Exception as err:
+            return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+   
+   
+    def get(self, request):
+        queryset = Employee.objects.all()
+        serializer = EmployeeSerializer(queryset, many=True)
+        return Response(serializer.data)
+                  
   
         
             
