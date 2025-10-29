@@ -101,7 +101,7 @@ class EmployeeDetail(APIView):
         
         try:
             employee = get_object_or_404(Employee, id=employee_id)
-            serializer = EmployeeSerializer(employee, data=request.data)
+            serializer = EmployeeSerializer(employee, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data,status=status.HTTP_200_OK)
