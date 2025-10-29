@@ -85,6 +85,33 @@ class EmployeeRegister(APIView):
         queryset = Employee.objects.all()
         serializer = EmployeeSerializer(queryset, many=True)
         return Response(serializer.data)
+       
+class EmployeeDetail(APIView):
+    permission_classes = [AllowAny] 
+    def get(self, request, employee_id ):
+        try:
+            employee = get_object_or_404(Employee, id=employee_id)
+            serializer = EmployeeSerializer(employee)
+            data = serializer.data
+            return Response(data)
+        except Exception as err:
+            return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def put(self, request, employee_id):
+        
+        try:
+            employee = get_object_or_404(Employee, id=employee_id)
+            serializer = EmployeeSerializer(employee, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data,status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)                       
+        except Exception as err:
+            return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+          
+       
+                  
+                  
                   
   
         
