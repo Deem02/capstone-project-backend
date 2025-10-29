@@ -26,7 +26,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
     department  = serializers.StringRelatedField(read_only=True)
     employee_id= serializers.IntegerField(source='id',read_only=True)  
     #field for assocations  
-    department_id = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all(), source='department',allow_null=True )
+    department_id = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all(), source='department',allow_null=True,required=False )
 
     class Meta:
         model = Employee

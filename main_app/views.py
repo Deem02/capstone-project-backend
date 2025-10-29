@@ -109,7 +109,11 @@ class EmployeeDetail(APIView):
         except Exception as err:
             return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
           
-       
+    def delete(self, request, employee_id):
+        employee = get_object_or_404(Employee, id=employee_id)
+        user = employee.user
+        user.delete()
+        return Response({'message': f'Employee {employee_id} and their user account has been deleted '}, status=status.HTTP_200_OK)
                   
                   
                   
