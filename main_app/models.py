@@ -29,3 +29,23 @@ class Employee(models.Model):
     
     def __str__(self):
         return self.user.username
+    
+class Task(models.Model):
+    title = models.CharField(max_length=250)
+    description = models.TextField(blank=True, null=True)
+    is_completed = models.BooleanField(default=False)
+    due_date = models.DateField(blank=True, null=True)
+    department = models.ForeignKey(
+        Department, 
+        on_delete=models.SET_NULL,
+        blank=True, null=True, 
+        related_name='tasks')
+    assignee = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        blank=True, null=True,
+        related_name='tasks'
+    )
+    
+    def __str__(self):
+        return f'{self.id} - {self.title}' 
