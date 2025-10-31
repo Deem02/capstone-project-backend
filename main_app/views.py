@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from .models import Department, Employee
-from .serializers import DepartmentSerializer, EmployeeSerializer
-
+from .serializers import DepartmentSerializer, EmployeeSerializer, EmployeeListSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -83,7 +82,7 @@ class EmployeeRegister(APIView):
    
     def get(self, request):
         queryset = Employee.objects.all()
-        serializer = EmployeeSerializer(queryset, many=True)
+        serializer = EmployeeListSerializer(queryset, many=True)
         return Response(serializer.data)
        
 class EmployeeDetail(APIView):
