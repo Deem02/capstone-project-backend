@@ -1,13 +1,14 @@
 from django.shortcuts import render
-from .models import Department, Employee
-from .serializers import DepartmentSerializer, EmployeeSerializer, EmployeeListSerializer
+from .models import Department, Employee, Task
+from .serializers import DepartmentSerializer, EmployeeSerializer, EmployeeListSerializer, TaskSerializer
+from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 #Auth
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny, IsAdminUser
-
+from .permissions import IsAdminRole
 from django.contrib.auth import get_user_model
 
 # Create your views here.
@@ -113,7 +114,19 @@ class EmployeeDetail(APIView):
         user = employee.user
         user.delete()
         return Response({'message': f'Employee {employee_id} and their user account has been deleted '}, status=status.HTTP_200_OK)
-                  
+        
+class TaskViewSet(viewsets.ModelViewSet):
+    serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # filter based on user role 
+        user = self.request.user
+        if user.is_superuser or (hasattr(user,'employee_profile') and user.employee_profile.role == 'ADMIN'):
+            return Task.objects.all()
+        
+        return Task.objects.filter(assignee=user)
+              
                   
                   
   

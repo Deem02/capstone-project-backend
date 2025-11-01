@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Department, Employee
+from .models import Department, Employee, Task
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import  transaction
@@ -116,8 +116,22 @@ class EmployeeListSerializer(serializers.ModelSerializer):
         class Meta:
             model = Employee
             fields = ('id','username','first_name', 'last_name', 'email', 'department', 'role')
-            
+          
+class TaskSerializer(serializers.ModelSerializer):
+    department_name = serializers.CharField(source='department.name',read_only=True, allow_null=True)
+    assignee_name = serializers.CharField(source='assignee.username',read_only=True) 
+    
+    class Meta:
+        model = Task
+        fields = ('id','title', 'description', 'is_completed', 'due_date',
+                  'department_name', 'assignee_name',
+                  'department', 'assignee')
         
+        extra_kwargs = {
+            'department': {'write_only':True, 'required': False, 'allow_null': True},
+            'assignee': {'write_only':True,'required': True}
+            
+        }
     
     # Refrence:
     #https://medium.com/django-rest-framework/dealing-with-unique-constraints-in-nested-serializers-dade33b831d9
