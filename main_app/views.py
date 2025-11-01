@@ -8,7 +8,7 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 #Auth
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny, IsAdminUser
-from .permissions import IsAdminRole
+from .permissions import IsAdminRole, IsAdminOrAssigneeForTask
 from django.contrib.auth import get_user_model
 
 # Create your views here.
@@ -117,15 +117,20 @@ class EmployeeDetail(APIView):
         
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrAssigneeForTask]
     
     def get_queryset(self):
-        # filter based on user role 
+        # filter list based on user role 
         user = self.request.user
         if user.is_superuser or (hasattr(user,'employee_profile') and user.employee_profile.role == 'ADMIN'):
             return Task.objects.all()
         
         return Task.objects.filter(assignee=user)
+    
+    def get_permissions(self):
+        if self.action in ['create','destroy']:
+            return [IsAuthenticated(), IsAdminRole()]
+        return super().get_permissions()
               
                   
                   
