@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Department, Employee, Task
-from .serializers import DepartmentSerializer, EmployeeSerializer, EmployeeListSerializer, TaskSerializer
+from .serializers import DepartmentSerializer, EmployeeSerializer, EmployeeListSerializer, TaskSerializer, MyTokenObtainPairSerializer
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from .permissions import IsAdminRole, IsAdminOrAssigneeForTask
 from django.contrib.auth import get_user_model
 
+from rest_framework_simplejwt.views import TokenObtainPairView
 # Create your views here.
 
 class DepartmentList(APIView):
@@ -68,7 +69,7 @@ class DepartmentDetail(APIView):
     # I dont use try - except here to get  404 Not Found 
     
 class EmployeeRegister(APIView):
-    permission_classes = [AllowAny] 
+    permission_classes = [IsAuthenticated] 
     def post(self, request):     
         try:
             serializer = EmployeeSerializer(data=request.data)
@@ -87,7 +88,7 @@ class EmployeeRegister(APIView):
         return Response(serializer.data)
        
 class EmployeeDetail(APIView):
-    permission_classes = [AllowAny] 
+    permission_classes = [IsAuthenticated] 
     def get(self, request, employee_id ):
         try:
             employee = get_object_or_404(Employee, id=employee_id)
@@ -131,6 +132,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         if self.action in ['create','destroy']:
             return [IsAuthenticated(), IsAdminRole()]
         return super().get_permissions()
+    
+class MyTokenObtainPairView(TokenObtainPairView):
+    # takes username and passwored and returm access and refresh JSON web token with custome role
+    serializer_class = MyTokenObtainPairSerializer
               
                   
                   

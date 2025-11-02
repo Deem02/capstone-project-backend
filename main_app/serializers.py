@@ -3,6 +3,7 @@ from .models import Department, Employee, Task
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import  transaction
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
 
@@ -113,12 +114,14 @@ class EmployeeListSerializer(serializers.ModelSerializer):
         first_name=serializers.CharField(source='user.first_name')
         last_name=serializers.CharField(source='user.last_name')
         email=serializers.CharField(source='user.email')
+        # for Taskform in assigne field
+        user_id = serializers.IntegerField(source='user.id')
         class Meta:
             model = Employee
-            fields = ('id','username','first_name', 'last_name', 'email', 'department', 'role')
+            fields = ('id','username','first_name', 'last_name', 'email', 'department', 'role','user_id')
           
 class TaskSerializer(serializers.ModelSerializer):
-    department_name = serializers.CharField(source='department.name',read_only=True, allow_null=True)
+    department_name = serializers.CharField(source='assignee.employee_profile.department.name',read_only=True, allow_null=True)
     assignee_name = serializers.CharField(source='assignee.username',read_only=True) 
     
     class Meta:
@@ -129,12 +132,29 @@ class TaskSerializer(serializers.ModelSerializer):
         
         extra_kwargs = {
             'department': {'write_only':True, 'required': False, 'allow_null': True},
-            'assignee': {'write_only':True,'required': True}
-            
+            'assignee': {'required': True}          
         }
+ 
+        # custom token claims
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Add custom claims
+        token['is_superuser'] = user.is_superuser
+        try:        
+            employee = user.employee_profile
+            token['role'] = employee.role
+            token['employee_id'] = employee.id
+        except Employee.DoesNotExist:
+            token['role'] = None
+            token['employee_id'] = None
+        return token
+            
     
     # Refrence:
     #https://medium.com/django-rest-framework/dealing-with-unique-constraints-in-nested-serializers-dade33b831d9
+    #https://stackoverflow.com/questions/54544978/customizing-jwt-response-from-django-rest-framework-simplejwt
         
     
     
