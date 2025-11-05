@@ -8,9 +8,10 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 User = get_user_model()
 
 class DepartmentSerializer(serializers.ModelSerializer):
+    employee_count = serializers.IntegerField(source='employees.count', read_only=True)
     class Meta:
         model = Department
-        fields = '__all__'
+        fields = ['id', 'name', 'description','employee_count']
                 
 class UserSerializer(serializers.ModelSerializer):                    #allow empty string on updates
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)  
@@ -34,7 +35,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
     employee_id= serializers.IntegerField(source='id',read_only=True) 
 
     #field for assocations  
-    department_id = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all(), source='department',allow_null=True,required=False, write_only=True )
+    department_id = serializers.PrimaryKeyRelatedField(
+        queryset=Department.objects.all(),
+        source='department',
+        allow_null=True,required=False )
    
     class Meta:
         model = Employee
@@ -107,7 +111,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         return instance
     
 class EmployeeListSerializer(serializers.ModelSerializer):
-        # read only for displying in EmplyeeList view
+        # read only for displying in EmployeeList view
         username = serializers.CharField(source='user.username')
         department  = serializers.StringRelatedField()
         role = serializers.CharField(source='get_role_display') 

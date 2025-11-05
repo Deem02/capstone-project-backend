@@ -7,18 +7,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 #Auth
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from .permissions import IsAdminRole, IsAdminOrAssigneeForTask
-from django.contrib.auth import get_user_model
-
 from rest_framework_simplejwt.views import TokenObtainPairView
 # Create your views here.
 
-class DepartmentList(APIView):
-    
-    # Auth
+class DepartmentList(APIView): 
     # Note: even if i dont add it here it will still be protected by a golabal settins in REST_FRAMEWORK
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminRole]
       
     def get(self, request):
         queryset = Department.objects.all()
@@ -38,7 +34,7 @@ class DepartmentList(APIView):
 
 # retreve, update, delete a single department         
 class DepartmentDetail(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminRole]
     
     def get(self, request, department_id ):
         try:
@@ -49,8 +45,7 @@ class DepartmentDetail(APIView):
         except Exception as err:
             return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-    def put(self, request, department_id):
-        
+    def put(self, request, department_id):    
         try:
             department = get_object_or_404(Department, id=department_id)
             serializer = DepartmentSerializer(department, data=request.data)
@@ -69,7 +64,7 @@ class DepartmentDetail(APIView):
     # I dont use try - except here to get  404 Not Found 
     
 class EmployeeRegister(APIView):
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated, IsAdminRole] 
     def post(self, request):     
         try:
             serializer = EmployeeSerializer(data=request.data)
@@ -88,7 +83,7 @@ class EmployeeRegister(APIView):
         return Response(serializer.data)
        
 class EmployeeDetail(APIView):
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated,IsAdminRole] 
     def get(self, request, employee_id ):
         try:
             employee = get_object_or_404(Employee, id=employee_id)
@@ -98,8 +93,7 @@ class EmployeeDetail(APIView):
         except Exception as err:
             return Response({'error': str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    def put(self, request, employee_id):
-        
+    def put(self, request, employee_id):    
         try:
             employee = get_object_or_404(Employee, id=employee_id)
             serializer = EmployeeSerializer(employee, data=request.data, partial=True)
@@ -115,7 +109,15 @@ class EmployeeDetail(APIView):
         user = employee.user
         user.delete()
         return Response({'message': f'Employee {employee_id} and their user account has been deleted '}, status=status.HTTP_200_OK)
+    
+class EmployeeProfile(APIView):
+    permission_classes = [IsAuthenticated] 
+    def get(self, request ): 
+        employee = get_object_or_404(Employee, user=request.user)
+        serializer = EmployeeSerializer(employee)
+        return Response(serializer.data)  
         
+             
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, IsAdminOrAssigneeForTask]
