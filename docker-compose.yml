@@ -1,0 +1,46 @@
+services:
+  dp:
+    image: postgres
+    container_name: dp
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: postgres # Need to be the same as in your .env file
+      POSTGRES_PASSWORD: De321$
+      POSTGRES_DB: capstone_project
+
+  frontend:
+    build:
+      context: ../capstone-project-frontend/
+      dockerfile: Dockerfile
+    container_name: "capstone_project_frontend"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../capstone-project-frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - dp
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend_api
+    command: >
+      bash -c "
+              python manage.py makemigrations &&
+              python manage.py migrate &&
+              python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./:/usr/src/backend/
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    depends_on:
+      - dp
+volumes:
+  postgres_data:
